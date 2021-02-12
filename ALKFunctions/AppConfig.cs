@@ -1,3 +1,5 @@
+using System;
+
 namespace ALKFunctions
 {
     public class AppConfig
@@ -5,7 +7,7 @@ namespace ALKFunctions
         public YouTubeConfig? YouTube { get; set; }
         public PushBulletConfig? PushBullet { get; set; }
         public string? AllansNumber { get; set; }
-        public string? BaseUri { get; set; }
+        public Uri? SiteUri { get; set; }
     }
 
     public class YouTubeConfig

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using ALKFunctions.Services;
 using Google.Cloud.Functions.Framework;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +13,7 @@ namespace ALKFunctions.Functions
     {
         protected HttpFunctionBase()
         {
-            var services = Services.BuildServiceProvider();
+            var services = ServiceExtensions.BuildServiceProvider();
 
             var needsInjection = GetType().GetProperties()
                 .Where(p => p.GetCustomAttribute<InjectAttribute>() != null);
