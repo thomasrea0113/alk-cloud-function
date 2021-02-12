@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "ALKFunctions"
+		},
+		{
+			"path": "ALKFunctionsTests"
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"ms-dotnettools.csharp",
+			"redhat.vscode-xml",
+			"gruntfuggly.todo-tree",
+			"fudge.auto-using"
+		]
+	},
+	"settings": {
+		"editor.formatOnSave": true
+	}
+}
