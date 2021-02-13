@@ -12,6 +12,7 @@ namespace ALK
 
     public class YouTubeConfig
     {
+        public bool SkipSend { get; set; }
         public string? ApiKey { get; set; }
         public int? PageCount { get; set; }
     }

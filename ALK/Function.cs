@@ -54,8 +54,15 @@ namespace ALK
             var config = await Serializer.DeserializeStreamAsync<AppConfig>(context.Request.Body)
                 .ConfigureAwait(false);
 
-            var skipSend = config.PushBullet?.SkipSend ?? Config.Value.PushBullet?.SkipSend
+            // due to API limits, we may want to temporarily disable api requests
+            var skipSmsSend = config.PushBullet?.SkipSend ?? Config.Value.PushBullet?.SkipSend
                 ?? throw new NullReferenceException(nameof(AppConfig.PushBullet));
+            var skipYouTubeSend = config.YouTube?.SkipSend ?? Config.Value.YouTube?.SkipSend
+                ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
+
+
+            var pageCount = config.YouTube?.PageCount ?? Config.Value.YouTube?.PageCount
+                ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
             var allansNumber = config.AllansNumber ?? Config.Value.AllansNumber
                 ?? throw new NullReferenceException(nameof(AppConfig.AllansNumber));
             var siteUri = config.SiteUri ?? Config.Value.SiteUri
@@ -66,7 +73,7 @@ namespace ALK
             var query = TheTubes.Search.List("snippet");
             query.Q = "Knife Sharpening";
             query.Type = "video";
-            var videos = await GetVideoUrls().ToArrayAsync().ConfigureAwait(false);
+            var videos = await GetVideoUrls(pageCount, skipYouTubeSend).ToArrayAsync().ConfigureAwait(false);
             var video = videos.Skip((int)(random.NextDouble() * videos.Length)).First();
 
             var message = $"Checkout this cool knife video!\n\n{video}";
@@ -74,40 +81,47 @@ namespace ALK
 
             var ei = new EventId(69, "SmsSentToAllan");
 
-            if (!skipSend)
+            if (!skipSmsSend)
                 await SmsSender.SendAsync(message, allansNumber).ConfigureAwait(false);
             Logger.LogInformation(ei, "sms sent to allan at {number}: {message}", allansNumber, message);
 
             // need a delay between SMS message or the second may not go through
             await Task.Delay(1000);
 
-            if (!skipSend)
+            if (!skipSmsSend)
                 await SmsSender.SendAsync(message2, allansNumber).ConfigureAwait(false);
             Logger.LogInformation(ei, "sms sent to allan at {number}: {message}", allansNumber, message2);
         }
 
-        private async IAsyncEnumerable<string> GetVideoUrls()
+        private async IAsyncEnumerable<string> GetVideoUrls(int pageCount, bool skipSend)
         {
-            var pageCount = Config.Value.YouTube?.PageCount
-                ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
-
+            var maxResults = 50;
             var query = TheTubes.Search.List("snippet");
             query.Q = "Knife Sharpening";
             query.Type = "video";
-            query.MaxResults = 50;
+            query.MaxResults = maxResults;
 
-            string? page = null;
-            foreach (var i in Enumerable.Range(0, pageCount))
+            string ToUrl(string videoId) => $"https://www.youtube.com/watch?v={videoId}";
+
+            if (!skipSend)
             {
-                query.PageToken = page;
+                string? page = null;
+                foreach (var i in Enumerable.Range(0, pageCount))
+                {
+                    query.PageToken = page;
 
-                var results = await query.ExecuteAsync().ConfigureAwait(false);
+                    var results = await query.ExecuteAsync().ConfigureAwait(false);
 
-                foreach (var result in results.Items)
-                    yield return $"https://www.youtube.com/watch?v={result.Id.VideoId}";
+                    foreach (var result in results.Items)
+                        yield return ToUrl(result.Id.VideoId);
 
-                page = results.NextPageToken;
+                    page = results.NextPageToken;
+                }
+                yield break;
             }
+
+            foreach (var i in Enumerable.Range(1, pageCount * maxResults))
+                yield return ToUrl($"Video{i}");
         }
     }
 }
