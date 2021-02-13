@@ -1,6 +1,6 @@
 using System;
 
-namespace ALKFunctions
+namespace ALK
 {
     public class AppConfig
     {

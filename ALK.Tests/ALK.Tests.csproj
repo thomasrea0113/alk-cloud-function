@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ALKFunctions\ALKFunctions.csproj" />
+    <ProjectReference Include="..\ALK\ALK.csproj" />
   </ItemGroup>
 
   <ItemGroup>

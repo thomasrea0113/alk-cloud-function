@@ -8,8 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
-namespace ALKFunctions.Services
+namespace ALK.Services
 {
     public static class ServiceExtensions
     {
@@ -27,6 +28,7 @@ namespace ALKFunctions.Services
 
             var services = new ServiceCollection()
                 .AddSingleton<IConfiguration>(_ => config)
+                .AddSingleton<IJsonStreamSerializer, JsonStreamSerializer>()
                 .AddLogging(b => b.AddConsole().AddConfiguration(config.GetSection("Logging")))
                 .AddYouTubeService();
 

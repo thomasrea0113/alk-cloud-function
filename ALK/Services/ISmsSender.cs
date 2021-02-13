@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace ALKFunctions.Services
+namespace ALK.Services
 {
     public interface ISmsSender
     {

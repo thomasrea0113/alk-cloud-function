@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "deploy",
+            "type": "shell",
+            "command": "gcloud",
+            "args": [
+                "functions",
+                "deploy",
+                "ALK",
+                "--region",
+                "us-east1",
+                "--trigger-http",
+                "--runtime",
+                "dotnet3",
+                "--entry-point",
+                "ALK.Function",
+                "--memory",
+                "128MB",
+                "--no-allow-unauthenticated",
+                "--set-build-env-vars",
+                "DOTNET_ENVIRONMENT=Production",
+                "--set-env-vars",
+                "DOTNET_ENVIRONMENT=Production",
+                "--max-instances",
+                "2"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

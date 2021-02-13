@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "ALKFunctions"
+			"path": "ALK"
 		},
 		{
-			"path": "ALKFunctionsTests"
+			"path": "ALK.Tests"
 		}
 	],
 	"extensions": {

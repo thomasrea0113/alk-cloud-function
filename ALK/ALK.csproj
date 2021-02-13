@@ -4,11 +4,19 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
+
+    <!-- needed in order to load the app in google cloud function -->
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(DOTNET_ENVIRONMENT) == 'Production'">
+    <OutputType>Exe</OutputType>
+    <Configuration>Release</Configuration>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.50.0.2232" />
-    <PackageReference Include="Google.Cloud.Functions.Framework" Version="1.0.0-beta04" />
+    <PackageReference Include="Google.Cloud.Functions.Hosting" Version="1.0.0-beta04" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.12" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />
   </ItemGroup>
@@ -26,7 +34,7 @@
     <Content Include="appSettings.$(DOTNET_ENVIRONMENT).json" Condition="Exists('appSettings.$(DOTNET_ENVIRONMENT).json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="appSettings.$(DOTNET_ENVIRONMENT)secret.json" Condition="Exists('appSettings.$(DOTNET_ENVIRONMENT)secret.json')">
+    <Content Include="appSettings.$(DOTNET_ENVIRONMENT).secret.json" Condition="Exists('appSettings.$(DOTNET_ENVIRONMENT).secret.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
