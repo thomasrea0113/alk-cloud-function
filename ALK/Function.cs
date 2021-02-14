@@ -49,48 +49,67 @@ namespace ALK
         }
 #pragma warning restore CS8618
 
+        private readonly EventId _smsSent = new EventId(69, "SmsSent");
+        private readonly string[] _greetings = {
+            "How ya durrin",
+            "How you is",
+            "What it do",
+            "What's good wit ya",
+            "howdy",
+            "What it is",
+            "Suh",
+        };
+
+        private readonly string[] _names = {
+            "Hombre",
+            "brutta",
+            "bruh",
+            "Darlin",
+            "Browski",
+        };
+
         public async Task HandleAsync(HttpContext context)
         {
-            var config = await Serializer.DeserializeStreamAsync<AppConfig>(context.Request.Body)
+            var requestConfig = await Serializer.DeserializeStreamAsync<AppConfig>(context.Request.Body)
                 .ConfigureAwait(false);
 
             // due to API limits, we may want to temporarily disable api requests
-            var skipSmsSend = config.PushBullet?.SkipSend ?? Config.Value.PushBullet?.SkipSend
+            var skipSmsSend = requestConfig.PushBullet?.SkipSend ?? Config.Value.PushBullet?.SkipSend
                 ?? throw new NullReferenceException(nameof(AppConfig.PushBullet));
-            var skipYouTubeSend = config.YouTube?.SkipSend ?? Config.Value.YouTube?.SkipSend
+            var skipYouTubeSend = requestConfig.YouTube?.SkipSend ?? Config.Value.YouTube?.SkipSend
                 ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
 
 
-            var pageCount = config.YouTube?.PageCount ?? Config.Value.YouTube?.PageCount
+            var pageCount = requestConfig.YouTube?.PageCount ?? Config.Value.YouTube?.PageCount
                 ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
-            var allansNumber = config.AllansNumber ?? Config.Value.AllansNumber
-                ?? throw new NullReferenceException(nameof(AppConfig.AllansNumber));
-            var siteUri = config.SiteUri ?? Config.Value.SiteUri
+            var numbers = requestConfig.Numbers ?? Config.Value.Numbers
+                ?? throw new NullReferenceException(nameof(AppConfig.Numbers));
+            var siteUri = requestConfig.SiteUri ?? Config.Value.SiteUri
                 ?? throw new NullReferenceException(nameof(AppConfig.SiteUri));
 
             var random = new Random(Guid.NewGuid().GetHashCode());
 
-            var query = TheTubes.Search.List("snippet");
-            query.Q = "Knife Sharpening";
-            query.Type = "video";
             var videos = await GetVideoUrls(pageCount, skipYouTubeSend).ToArrayAsync().ConfigureAwait(false);
-            var video = videos.Skip((int)(random.NextDouble() * videos.Length)).First();
+            var video = videos.RandomItem();
 
-            var message = $"Checkout this cool knife video!\n\n{video}";
+            var message = $"{_greetings.RandomItem()}, {_names.RandomItem()}! Checkout this cool knife sharpening video!\n\n{video}";
             var message2 = $"If you're tired of these messages, you can unsubscribe using this link: {siteUri}";
 
-            var ei = new EventId(69, "SmsSentToAllan");
-
             if (!skipSmsSend)
-                await SmsSender.SendAsync(message, allansNumber).ConfigureAwait(false);
-            Logger.LogInformation(ei, "sms sent to allan at {number}: {message}", allansNumber, message);
+            {
+                var stringNumbers = String.Join(", ", numbers);
 
-            // need a delay between SMS message or the second may not go through
-            await Task.Delay(1000);
+                await SmsSender.SendAsync(message, numbers.ToArray()).ConfigureAwait(false);
+                Logger.LogInformation(_smsSent, "sms sent to {number}: {message}", stringNumbers, message);
 
-            if (!skipSmsSend)
-                await SmsSender.SendAsync(message2, allansNumber).ConfigureAwait(false);
-            Logger.LogInformation(ei, "sms sent to allan at {number}: {message}", allansNumber, message2);
+                // need a delay between SMS message or the second may not go through
+                await Task.Delay(1000);
+
+                await SmsSender.SendAsync(message2, numbers.ToArray()).ConfigureAwait(false);
+                Logger.LogInformation(_smsSent, "sms sent to {number}: {message}", stringNumbers, message2);
+            }
+            else
+                Logger.LogInformation("messaging configured to skip");
         }
 
         private async IAsyncEnumerable<string> GetVideoUrls(int pageCount, bool skipSend)

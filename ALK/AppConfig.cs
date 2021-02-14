@@ -1,12 +1,21 @@
+using System.Linq;
+using System.Collections.Generic;
 using System;
 
 namespace ALK
 {
+    public class User
+    {
+        public string? Name { get; set; }
+        public string? Number { get; set; }
+    }
+
     public class AppConfig
     {
         public YouTubeConfig? YouTube { get; set; }
         public PushBulletConfig? PushBullet { get; set; }
-        public string? AllansNumber { get; set; }
+
+        public IList<string>? Numbers { get; set; }
         public Uri? SiteUri { get; set; }
     }
 
