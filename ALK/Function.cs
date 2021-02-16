@@ -49,7 +49,6 @@ namespace ALK
         }
 #pragma warning restore CS8618
 
-        private readonly EventId _smsSent = new EventId(69, "SmsSent");
         private readonly string[] _greetings = {
             "How ya durrin",
             "How you is",
@@ -74,11 +73,11 @@ namespace ALK
                 .ConfigureAwait(false);
 
             // due to API limits, we may want to temporarily disable api requests
-            var skipSmsSend = requestConfig.PushBullet?.SkipSend ?? Config.Value.PushBullet?.SkipSend
-                ?? throw new NullReferenceException(nameof(AppConfig.PushBullet));
+            if (requestConfig.PushBullet?.SkipSend is bool smsSend)
+                SmsSender.SkipSend = smsSend;
+
             var skipYouTubeSend = requestConfig.YouTube?.SkipSend ?? Config.Value.YouTube?.SkipSend
                 ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
-
 
             var pageCount = requestConfig.YouTube?.PageCount ?? Config.Value.YouTube?.PageCount
                 ?? throw new NullReferenceException(nameof(AppConfig.YouTube));
@@ -95,21 +94,18 @@ namespace ALK
             var message = $"{_greetings.RandomItem()}, {_names.RandomItem()}! Checkout this cool knife sharpening video!\n\n{video}";
             var message2 = $"If you're tired of these messages, you can unsubscribe using this link: {siteUri}";
 
-            if (!skipSmsSend)
+            foreach (var number in numbers)
             {
-                var stringNumbers = String.Join(", ", numbers);
-
-                await SmsSender.SendAsync(message, numbers.ToArray()).ConfigureAwait(false);
-                Logger.LogInformation(_smsSent, "sms sent to {number}: {message}", stringNumbers, message);
+                var result = await SmsSender.SendAsync(message, numbers.ToArray()).ConfigureAwait(false);
+                await SmsSender.AwaitCompleteAsync(result).ConfigureAwait(false);
 
                 // need a delay between SMS message or the second may not go through
                 await Task.Delay(1000);
 
                 await SmsSender.SendAsync(message2, numbers.ToArray()).ConfigureAwait(false);
-                Logger.LogInformation(_smsSent, "sms sent to {number}: {message}", stringNumbers, message2);
+
+                await Task.Delay(1000);
             }
-            else
-                Logger.LogInformation("messaging configured to skip");
         }
 
         private async IAsyncEnumerable<string> GetVideoUrls(int pageCount, bool skipSend)

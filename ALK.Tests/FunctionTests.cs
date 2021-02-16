@@ -27,7 +27,10 @@ namespace ALKTests
             context.Request.Body = new MemoryStream();
 
             var serializer = alk.Services.GetRequiredService<IJsonStreamSerializer>();
-            await serializer.SerializeToStreamAsync(new AppConfig(), context.Request.Body).ConfigureAwait(false);
+            await serializer.SerializeToStreamAsync(new AppConfig
+            {
+                PushBullet = new() { SkipSend = false }
+            }, context.Request.Body).ConfigureAwait(false);
             context.Request.Body.Seek(0, 0);
             context.Request.ContentLength = context.Request.Body.Length;
 
