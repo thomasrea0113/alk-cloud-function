@@ -94,15 +94,16 @@ namespace ALK
             var message = $"{_greetings.RandomItem()}, {_names.RandomItem()}! Checkout this cool knife sharpening video!\n\n{video}";
             var message2 = $"If you're tired of these messages, you can unsubscribe using this link: {siteUri}";
 
+            // send each message as a separate sms, rather than a single mms
             foreach (var number in numbers)
             {
-                var result = await SmsSender.SendAsync(message, numbers.ToArray()).ConfigureAwait(false);
+                var result = await SmsSender.SendAsync(message, number).ConfigureAwait(false);
                 await SmsSender.AwaitCompleteAsync(result).ConfigureAwait(false);
 
                 // need a delay between SMS message or the second may not go through
                 await Task.Delay(1000);
 
-                await SmsSender.SendAsync(message2, numbers.ToArray()).ConfigureAwait(false);
+                await SmsSender.SendAsync(message2, number).ConfigureAwait(false);
 
                 await Task.Delay(1000);
             }
